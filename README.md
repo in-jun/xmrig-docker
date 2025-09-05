@@ -5,8 +5,12 @@ Containerized XMRig Monero miner
 ## Usage
 
 ```bash
+# Use pre-built image
+docker run -d -e WALLET_ADDRESS="your_wallet" injundev/xmrig:latest
+
+# Or build locally
 docker build -t xmrig-docker .
-docker run -d -e WALLET_ADDRESS="your_wallet_address" xmrig-docker
+docker run -d -e WALLET_ADDRESS="your_wallet" xmrig-docker
 ```
 
 ## Variables
