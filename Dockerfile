@@ -9,4 +9,4 @@ COPY --from=builder /tmp/xmrig/build/xmrig /usr/local/bin/
 USER xmrig
 WORKDIR /home/xmrig
 
-CMD ["sh", "-c", "echo \"{\\\"pools\\\":[{\\\"coin\\\":\\\"monero\\\",\\\"url\\\":\\\"${POOL_URL:-kr.monero.herominers.com:1111}\\\",\\\"user\\\":\\\"${WALLET_ADDRESS:-YOUR_WALLET_ADDRESS_HERE}\\\",\\\"rig-id\\\":\\\"${WORKER_ID:-$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 8 | head -n 1)}\\\",\\\"keepalive\\\":true}],\\\"randomx\\\":{\\\"1gb-pages\\\":true},\\\"colors\\\":false}\" > config.json && exec xmrig --config=config.json"]
+CMD ["sh", "-c", "echo \"{\\\"pools\\\":[{\\\"coin\\\":\\\"monero\\\",\\\"url\\\":\\\"${POOL_URL:-gulf.moneroocean.stream:10001}\\\",\\\"user\\\":\\\"${WALLET_ADDRESS:-YOUR_WALLET_ADDRESS_HERE}\\\",\\\"rig-id\\\":\\\"${WORKER_ID:-$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 8 | head -n 1)}\\\",\\\"keepalive\\\":true}],\\\"randomx\\\":{\\\"1gb-pages\\\":true},\\\"colors\\\":false}\" > config.json && exec xmrig --config=config.json"]
