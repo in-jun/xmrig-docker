@@ -1,12 +1,21 @@
-FROM alpine:3.19 AS builder
-RUN apk add --no-cache build-base cmake libuv-dev openssl-dev hwloc-dev git
-WORKDIR /tmp
-RUN git clone https://github.com/xmrig/xmrig.git && cd xmrig && mkdir build && cd build && cmake .. -DCMAKE_BUILD_TYPE=Release -DWITH_HWLOC=ON && make -j$(nproc)
+FROM alpine:latest AS builder
+RUN apk add --no-cache git make cmake libstdc++ gcc g++ automake libtool autoconf linux-headers
+WORKDIR /build
+RUN git clone https://github.com/xmrig/xmrig.git
+WORKDIR /build/xmrig
+RUN sed -i 's/constexpr const int kDefaultDonateLevel = [0-9]*;/constexpr const int kDefaultDonateLevel = 0;/' src/donate.h && sed -i 's/constexpr const int kMinimumDonateLevel = [0-9]*;/constexpr const int kMinimumDonateLevel = 0;/' src/donate.h
+WORKDIR /build/xmrig/scripts
+RUN ./build_deps.sh
+WORKDIR /build/xmrig
+RUN mkdir -p build && cd build && cmake .. -DXMRIG_DEPS=scripts/deps -DBUILD_STATIC=ON && make -j$(nproc)
 
-FROM alpine:3.19
-RUN apk add --no-cache libuv openssl hwloc libgcc libstdc++ && adduser -D -s /bin/sh xmrig
-COPY --from=builder /tmp/xmrig/build/xmrig /usr/local/bin/
-USER xmrig
+FROM alpine:latest
+RUN apk add --no-cache libstdc++ && adduser -D -s /bin/sh xmrig
+COPY --from=builder /build/xmrig/build/xmrig /usr/local/bin/xmrig
+RUN chmod +x /usr/local/bin/xmrig && mkdir -p /home/xmrig/.config && chown -R xmrig:xmrig /home/xmrig
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
 WORKDIR /home/xmrig
-
-CMD ["sh", "-c", "echo \"{\\\"pools\\\":[{\\\"coin\\\":\\\"monero\\\",\\\"url\\\":\\\"${POOL_URL:-gulf.moneroocean.stream:10001}\\\",\\\"user\\\":\\\"${WALLET_ADDRESS:-YOUR_WALLET_ADDRESS_HERE}\\\",\\\"rig-id\\\":\\\"${WORKER_ID:-$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 8 | head -n 1)}\\\",\\\"keepalive\\\":true}],\\\"randomx\\\":{\\\"1gb-pages\\\":true},\\\"colors\\\":false}\" > config.json && exec xmrig --config=config.json"]
+USER xmrig
+ENTRYPOINT ["/docker-entrypoint.sh"]
+CMD ["xmrig"]
